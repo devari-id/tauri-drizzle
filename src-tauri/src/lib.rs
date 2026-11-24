@@ -1,6 +1,5 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -16,12 +15,20 @@ pub fn run() {
             description: "create_initial_tables",
             sql: include_str!("../../drizzle/0000_yielding_moira_mactaggert.sql"),
             kind: MigrationKind::Up,
-        }
+        },
+        Migration {
+            version: 2,
+            description: "create_users_tables",
+            sql: include_str!("../../drizzle/0001_medical_iceman.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
     tauri::Builder::default()
-        .plugin(tauri_plugin_sql::Builder::default()
-         .add_migrations("sqlite:kanjipalv2.db", migrations)
-        .build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations("sqlite:kanjipalv2.db", migrations)
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())

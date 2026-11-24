@@ -1,21 +1,3 @@
-// import Database from "@tauri-apps/plugin-sql";
-// import { faker } from "@faker-js/faker";
-
-// let dbInstance: Database | null = null;
-
-// export async function getDB(): Promise<Database> {
-//   if (dbInstance) {
-//     return dbInstance;
-//   }
-//   try {
-//     dbInstance = await Database.load("sqlite:kanjipalv2.db");
-//     return dbInstance;
-//   } catch (error) {
-//     console.error("Gagal memuat database:", error);
-//     throw error;
-//   }
-// }
-
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import Database from "@tauri-apps/plugin-sql";
 import * as schema from "./schema";
@@ -24,41 +6,35 @@ export async function getDb() {
   return await Database.load("sqlite:kanjipalv2.db");
 }
 
-function isSelectQuery(sql: string): boolean {
-  const selectRegex = /^\s*SELECT\b/i;
-  return selectRegex.test(sql);
+function returnsRows(sql: string): boolean {
+  const normalized = sql.trim().toLowerCase();
+  return normalized.startsWith("select") || /\breturning\b/i.test(sql);
 }
 
 export const db = drizzle<typeof schema>(
   async (sql, params, method) => {
     const sqlite = await getDb();
-    let rows: any = [];
-    let results = [];
 
-    // If the query is a SELECT, use the select method
-    if (isSelectQuery(sql)) {
-      rows = await sqlite.select(sql, params).catch((e) => {
-        console.error("SQL Error:", e);
-        return [];
-      });
-    } else {
-      // Otherwise, use the execute method
-      rows = await sqlite.execute(sql, params).catch((e) => {
-        console.error("SQL Error:", e);
-        return [];
-      });
+    try {
+      if (returnsRows(sql)) {
+        const rawRows = await sqlite.select<Record<string, any>[]>(sql, params);
+        const rows = rawRows.map((row) => Object.values(row));
+
+        // Untuk Drizzle sqlite-proxy:
+        // - method "get" mengharapkan satu baris (atau [] jika kosong)
+        // - method "all" / "values" mengharapkan array of rows
+        const resultRows = method === "get" ? (rows[0] ?? []) : rows;
+        return { rows: resultRows };
+      } else {
+        await sqlite.execute(sql, params);
+        return { rows: [] };
+      }
+    } catch (e) {
+      console.error("SQL Error:", e);
       return { rows: [] };
+    } finally {
+      await sqlite.close();
     }
-
-    rows = rows.map((row: any) => {
-      return Object.values(row);
-    });
-
-    // If the method is "all", return all rows
-    results = method === "all" ? rows : rows[0];
-    await sqlite.close();
-    return { rows: results };
   },
-  // Pass the schema to the drizzle instance
-  { schema: schema, logger: true },
+  { schema, logger: true },
 );

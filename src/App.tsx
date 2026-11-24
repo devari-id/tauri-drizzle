@@ -23,6 +23,11 @@ function App() {
     });
   }, []);
 
+  const insertNewTodo = async () => {
+    const result = await insertTodo();
+    setTodos([...todos, ...result]);
+  };
+
   return (
     <main className="container">
       <h1>Welcome to Tauri + React</h1>
@@ -47,7 +52,7 @@ function App() {
       </ul>
 
       <div>
-        <button onClick={insertTodo}>Insert new todos</button>
+        <button onClick={insertNewTodo}>Insert new todos</button>
       </div>
 
       <form

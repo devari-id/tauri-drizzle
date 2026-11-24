@@ -8,3 +8,14 @@ export const todosTable = sqliteTable("todos", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
+
+export const usersTable = sqliteTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+});
