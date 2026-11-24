@@ -14,10 +14,7 @@ pub fn run() {
         Migration {
             version: 1,
             description: "create_initial_tables",
-            sql: "CREATE TABLE todos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            title TEXT, 
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);",
+            sql: include_str!("../../drizzle/0000_yielding_moira_mactaggert.sql"),
             kind: MigrationKind::Up,
         }
     ];

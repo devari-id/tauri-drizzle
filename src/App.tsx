@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-import { fetchTodos, insertTodo } from "./db";
+import { fetchTodos, insertTodo } from "./db/db-action";
 
-type Todo = { id: number; title: string; created_at: string };
+type Todo = { id: number; title: string; createdAt: string };
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -19,8 +19,7 @@ function App() {
 
   useEffect(() => {
     fetchTodos().then((data) => {
-      const t = data as Todo[];
-      setTodos(t);
+      setTodos(data);
     });
   }, []);
 

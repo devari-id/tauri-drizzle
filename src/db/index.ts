@@ -1,38 +1,64 @@
+// import Database from "@tauri-apps/plugin-sql";
+// import { faker } from "@faker-js/faker";
+
+// let dbInstance: Database | null = null;
+
+// export async function getDB(): Promise<Database> {
+//   if (dbInstance) {
+//     return dbInstance;
+//   }
+//   try {
+//     dbInstance = await Database.load("sqlite:kanjipalv2.db");
+//     return dbInstance;
+//   } catch (error) {
+//     console.error("Gagal memuat database:", error);
+//     throw error;
+//   }
+// }
+
+import { drizzle } from "drizzle-orm/sqlite-proxy";
 import Database from "@tauri-apps/plugin-sql";
-import { faker } from "@faker-js/faker";
+import * as schema from "./schema";
 
-let dbInstance: Database | null = null;
-
-export async function getDB(): Promise<Database> {
-  if (dbInstance) {
-    return dbInstance;
-  }
-  try {
-    dbInstance = await Database.load("sqlite:kanjipalv2.db");
-    return dbInstance;
-  } catch (error) {
-    console.error("Gagal memuat database:", error);
-    throw error;
-  }
+export async function getDb() {
+  return await Database.load("sqlite:kanjipalv2.db");
 }
 
-export const insertTodo = async () => {
-  const title = faker.person.jobTitle();
-  try {
-    const db = await getDB();
-    const result = await db.execute("INSERT into todos (title) VALUES ($1)", [
-      title,
-    ]);
-    console.log(result.lastInsertId);
-    console.log(result.rowsAffected);
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-};
+function isSelectQuery(sql: string): boolean {
+  const selectRegex = /^\s*SELECT\b/i;
+  return selectRegex.test(sql);
+}
 
-export const fetchTodos = async () => {
-  const db = await getDB();
-  const result = await db.select("SELECT * from todos");
-  return result;
-};
+export const db = drizzle<typeof schema>(
+  async (sql, params, method) => {
+    const sqlite = await getDb();
+    let rows: any = [];
+    let results = [];
+
+    // If the query is a SELECT, use the select method
+    if (isSelectQuery(sql)) {
+      rows = await sqlite.select(sql, params).catch((e) => {
+        console.error("SQL Error:", e);
+        return [];
+      });
+    } else {
+      // Otherwise, use the execute method
+      rows = await sqlite.execute(sql, params).catch((e) => {
+        console.error("SQL Error:", e);
+        return [];
+      });
+      return { rows: [] };
+    }
+
+    rows = rows.map((row: any) => {
+      return Object.values(row);
+    });
+
+    // If the method is "all", return all rows
+    results = method === "all" ? rows : rows[0];
+    await sqlite.close();
+    return { rows: results };
+  },
+  // Pass the schema to the drizzle instance
+  { schema: schema, logger: true },
+);

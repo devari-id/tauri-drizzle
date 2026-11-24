@@ -7,12 +7,16 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "db:generate": "pnpm drizzle-kit generate"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-sql": "~2.6.0",
+    "dotenv": "^18.0.10",
+    "drizzle-orm": "^0.45.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -22,6 +26,8 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vite": "^8.0.16"
   }
