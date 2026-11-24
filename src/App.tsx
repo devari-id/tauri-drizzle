@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import { fetchTodos, insertTodo } from "./db";
+
+type Todo = { id: number; title: string; created_at: string };
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -11,6 +14,15 @@ function App() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name }));
   }
+
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    fetchTodos().then((data) => {
+      const t = data as Todo[];
+      setTodos(t);
+    });
+  }, []);
 
   return (
     <main className="container">
@@ -28,6 +40,16 @@ function App() {
         </a>
       </div>
       <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+
+      <ul>
+        {todos.map((v) => (
+          <li key={v.id}>{v.title}</li>
+        ))}
+      </ul>
+
+      <div>
+        <button onClick={insertTodo}>Insert new todos</button>
+      </div>
 
       <form
         className="row"
