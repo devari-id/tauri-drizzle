@@ -32,6 +32,9 @@ importers:
       react-dom:
         specifier: ^19.1.0
         version: 19.3.1(react@19.3.1)
+      tauri-plugin-libsql-api:
+        specifier: ^0.1.1
+        version: 0.1.1
     devDependencies:
       '@faker-js/faker':
         specifier: ^10.6.0
@@ -1105,6 +1108,9 @@ packages:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
 
+  tauri-plugin-libsql-api@0.1.1:
+    resolution: {integrity: sha512-HumTMoNYg9IL3nMK1QRk9pLhlLmcbyefLYWkj//tUeV4BoRJ5LiLUZtyBubT3/3wpWj0MBbwilae+MGB7uBZJA==}
+
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
@@ -1876,6 +1882,10 @@ snapshots:
       source-map: 0.6.1
 
   source-map@0.6.1: {}
+
+  tauri-plugin-libsql-api@0.1.1:
+    dependencies:
+      '@tauri-apps/api': 2.12.5
 
   tinyglobby@0.2.17:
     dependencies:

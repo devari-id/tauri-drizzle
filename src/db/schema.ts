@@ -9,6 +9,8 @@ export const todosTable = sqliteTable("todos", {
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+export type Todo = typeof todosTable.$inferSelect;
+
 export const usersTable = sqliteTable("users", {
   id: text("id")
     .primaryKey()

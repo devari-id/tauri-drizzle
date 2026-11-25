@@ -18,7 +18,8 @@
     "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tauri-plugin-libsql-api": "^0.1.1"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",

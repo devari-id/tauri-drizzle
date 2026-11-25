@@ -1,16 +1,12 @@
 import { faker } from "@faker-js/faker";
-import { db } from ".";
+import { db } from "./init";
 import { todosTable } from "./schema";
+import { eq } from "drizzle-orm";
 
 export const insertTodo = async () => {
-  const title = faker.person.jobTitle();
+  const title = faker.lorem.words(4);
   try {
-    const result = await db
-      .insert(todosTable)
-      .values({
-        title,
-      })
-      .returning();
+    const result = await db().insert(todosTable).values({ title }).returning();
     return result;
   } catch (err) {
     console.log(err);
@@ -19,6 +15,10 @@ export const insertTodo = async () => {
 };
 
 export const fetchTodos = async () => {
-  const result = await db.query.todosTable.findMany();
+  const result = await db().query.todosTable.findMany();
   return result;
+};
+
+export const removeTodo = async (id: number) => {
+  return db().delete(todosTable).where(eq(todosTable.id, id));
 };

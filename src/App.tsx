@@ -1,77 +1,81 @@
-import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
-import { fetchTodos, insertTodo } from "./db/db-action";
+import { useCallback, useEffect, useState } from "react";
+import {
+  insertTodo,
+  fetchTodos as fetchTodosFromDb,
+  removeTodo,
+} from "./db/db-action";
+import { Todo } from "./db/schema";
 
-type Todo = { id: number; title: string; createdAt: string };
-
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
+export default function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTodos().then((data) => {
-      setTodos(data);
-    });
+  const fetchTodos = useCallback(async () => {
+    const data = await fetchTodosFromDb();
+    setTodos(data);
   }, []);
 
-  const insertNewTodo = async () => {
-    const result = await insertTodo();
-    setTodos([...todos, ...result]);
-  };
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        await fetchTodos();
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load todos:", err);
+        setError("Gagal memuat data todo.");
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [fetchTodos]);
+
+  async function handleInsertTodo() {
+    try {
+      const result = await insertTodo();
+      setTodos((prev) => [...prev, ...result]);
+    } catch (err) {
+      console.error("Failed to insert todo:", err);
+      setError("Gagal menambah todo.");
+    }
+  }
+
+  async function handleRemoveTodo(id: number) {
+    try {
+      await removeTodo(id);
+      setTodos((t) => t.filter((v) => v.id !== id));
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  if (isLoading) {
+    return <div>Memuat data...</div>;
+  }
+
+  if (error) {
+    return <div role="alert">{error}</div>;
+  }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
+    <main>
+      <h1>Todos</h1>
+      <button type="button" onClick={handleInsertTodo}>
+        Insert new todo
+      </button>
       <ul>
-        {todos.map((v) => (
-          <li key={v.id}>{v.title}</li>
+        {todos.map((todo) => (
+          <li key={todo.id}>
+            {todo.title}
+            <button onClick={() => handleRemoveTodo(todo.id)}>remove</button>
+          </li>
         ))}
       </ul>
-
-      <div>
-        <button onClick={insertNewTodo}>Insert new todos</button>
-      </div>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
     </main>
   );
 }
-
-export default App;
